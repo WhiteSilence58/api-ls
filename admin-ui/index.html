@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard Manager - Xtream UI</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>⚽ Live Scoreboard Manager</h1>
+        <div class="status-bar">
+            <span id="status-indicator" class="status offline">⚫ Offline</span>
+            <span id="active-streams">Active Streams: 0</span>
+        </div>
+    </header>
+
+    <main>
+        <!-- Live Matches Section -->
+        <section class="card">
+            <h2>📺 Live Matches</h2>
+            <div class="filter-bar">
+                <select id="league-filter">
+                    <option value="">All Leagues</option>
+                    <option value="Premier League">Premier League</option>
+                    <option value="LaLiga">LaLiga</option>
+                    <option value="Bundesliga">Bundesliga</option>
+                    <option value="Serie A">Serie A</option>
+                    <option value="Ligue 1">Ligue 1</option>
+                    <option value="Süper Lig">Süper Lig</option>
+                </select>
+                <button id="refresh-matches" class="btn btn-secondary">🔄 Refresh</button>
+                <label>
+                    <input type="checkbox" id="live-only"> Live Only
+                </label>
+            </div>
+            <div id="matches-list" class="matches-grid">
+                <p class="loading">Loading matches...</p>
+            </div>
+            <div class="selected-matches">
+                <h3>Selected Matches (<span id="selected-count">0</span>)</h3>
+                <div id="selected-list"></div>
+            </div>
+        </section>
+
+        <!-- Configuration Section -->
+        <section class="card">
+            <h2>⚙️ Scoreboard Configuration</h2>
+            <form id="config-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Config Name</label>
+                        <input type="text" id="config-name" placeholder="My Scoreboard" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Rotation Interval (seconds)</label>
+                        <input type="number" id="rotation-interval" value="15" min="5" max="60">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Canvas Width</label>
+                        <select id="canvas-width">
+                            <option value="280">280px (Tiny)</option>
+                            <option value="320" selected>320px (Small)</option>
+                            <option value="400">400px (Medium)</option>
+                            <option value="500">500px (Large)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Canvas Height</label>
+                        <select id="canvas-height">
+                            <option value="70">70px</option>
+                            <option value="80" selected>80px</option>
+                            <option value="100">100px</option>
+                            <option value="120">120px</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Theme</label>
+                        <select id="theme">
+                            <option value="dark" selected>Dark</option>
+                            <option value="light">Light</option>
+                            <option value="neon">Neon</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Font Size</label>
+                        <select id="font-size">
+                            <option value="small">Small</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="large">Large</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="show-league" checked> Show League Name
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="show-minute" checked> Show Match Minute
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="flash-goal" checked> Flash on Goal
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary">💾 Save Configuration</button>
+            </form>
+        </section>
+
+        <!-- Stream Control Section -->
+        <section class="card">
+            <h2>🎬 Stream Control</h2>
+            <div id="stream-controls">
+                <div class="form-group">
+                    <label>Stream Key</label>
+                    <input type="text" id="stream-key" placeholder="scoreboard_1" value="scoreboard_1">
+                    <small>Used in URL: /streams/<strong>stream_key</strong>/stream.m3u8</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Server Base URL (optional)</label>
+                    <input type="text" id="base-url" placeholder="http://your-server.com">
+                </div>
+
+                <div class="form-group">
+                    <label>Select Configuration</label>
+                    <select id="config-select">
+                        <option value="">-- Select Config --</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button id="start-stream" class="btn btn-success">▶️ Start Stream</button>
+                    <button id="stop-stream" class="btn btn-danger" disabled>⏹️ Stop Stream</button>
+                </div>
+
+                <div id="stream-info" class="stream-info hidden">
+                    <h3>📡 Stream Information</h3>
+                    <div class="info-row">
+                        <strong>Status:</strong>
+                        <span id="stream-status-text" class="badge badge-success">🟢 LIVE</span>
+                    </div>
+                    <div class="info-row">
+                        <strong>PID:</strong> <span id="stream-pid">-</span>
+                    </div>
+                    <div class="info-row">
+                        <strong>Playlist URL:</strong>
+                        <code id="playlist-url" class="copyable">-</code>
+                        <button class="btn btn-sm" onclick="copyToClipboard('playlist-url')">📋 Copy</button>
+                    </div>
+                    <div class="info-row">
+                        <strong>Xtream URL:</strong>
+                        <code id="xtream-url" class="copyable">-</code>
+                        <button class="btn btn-sm" onclick="copyToClipboard('xtream-url')">📋 Copy</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Active Streams Section -->
+        <section class="card">
+            <h2>📊 Active Streams</h2>
+            <div id="active-streams-list">
+                <p class="empty-state">No active streams</p>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
